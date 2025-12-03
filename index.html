@@ -354,7 +354,7 @@
           </div>
           <div class="js-animate animated" data-animate="bounceInUp" data-time="3800"
             style="position: absolute;top: 88%;left: 0;width: 100%;text-align: center;color: #3a3f58;font-size: 14px;">
-            欢迎12月25日参见我们的婚礼
+            欢迎2026年10月25日参加我们的婚礼
           </div>
           <div class="js-animate animated animation-2000" data-animate="zoomIn" data-time="5000"
             style="position: absolute;top: 95%;left: 0;width: 100%;text-align: center;">
@@ -617,11 +617,11 @@
         <div id="location-btn"><i class="iconfont" style="font-size: 32px;">&#xe616;</i></div>
         <div id="map-msg">
           <p class="js-animate animated" data-animate="bounceInDown" data-time="0"><i
-              class="iconfont red-icon">&#xe63e;</i>成都市高新区新国际会展中心，距离天府广场约13公里</p>
+              class="iconfont red-icon">&#xe63e;</i>安徽省淮南市名杨天禧礼宴中心</p>
           <p class="js-animate animated" data-animate="bounceInLeft" data-time="1000"><i
-              class="iconfont red-icon">&#xe622;</i>天府大道中段转世纪城路</p>
+              class="iconfont red-icon">&#xe622;</i>安徽省淮南市田家庵区春华街春申里16号楼109号</p>
           <p class="js-animate animated" data-animate="bounceInRight" data-time="2000"><i
-              class="iconfont red-icon">&#xe72b;</i>一号线世纪城站</p>
+              class="iconfont red-icon">&#xe72b;</i>2026年10月25日 农历九月十六 星期日</p>
           <p class="js-animate animated" data-animate="bounceInUp" data-time="3000"><i
               class="iconfont red-icon">&#xe636;</i>有任何疑问请致电 新郎&新娘</p>
         </div>
@@ -630,16 +630,21 @@
     <span class="start"><i class="iconfont" style="color: #fff;font-size: 30px;">&#xe606;</i></span>
     <audio id="mp3" src="./public/music/music.mp3" autoplay loop></audio>
     <script src="./public/js/js.fullpage.js"></script>
-    <script type="text/javascript"
-      src="http://api.map.baidu.com/api?v=2.0&ak=S6EO9oPso0n8aTMvfH1g0aLUX6vGZx1l"></script>
+    <!-- 引入高德地图API -->
+    <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=4fc6c19a6be1aaa580ce83674a70d68f"></script>
     <script>
       // 滚屏动画控制
 
+      // 确保loadSum足够大，以便启动程序
+      console.log('初始loadSum值:', loadSum);
+      
+      // 为了调试，直接启动，不等待图片加载完成
       if (isMobile !== false) {
         var loadTimer = setInterval(() => {
-          console.log(loadSum)
-          if (loadSum >= 17) {
-            start()
+          console.log('当前loadSum值:', loadSum);
+          if (loadSum >= 1 || loadSum >= 17) {
+            start();
+            clearInterval(loadTimer);
           }
         }, 300);
       }
@@ -707,68 +712,75 @@
 
       // 地图
       function initMap() {
-        if (window.BMap) {
-          mapFlag = true
-          var mapCenter = [104.083002, 30.5621]
-          var map = new BMap.Map("map", { minZoom: 10, maxZoom: 14 })
-
-          map.centerAndZoom(new BMap.Point(mapCenter[0], mapCenter[1]), 13);
-
-          function ComplexCustomOverlay(point, text, mouseoverText) {
-            this._point = point;
-            this._text = text;
-            this._overText = mouseoverText;
+        console.log('=== 开始初始化地图 ===');
+        
+        // 强制显示地图容器
+        var mapContainer = document.getElementById('map');
+        mapContainer.style.display = 'block';
+        
+        // 从页面中获取地址信息
+        var addressElement = document.querySelector('#map-msg p:first-child');
+        var weddingAddress = addressElement ? addressElement.textContent.trim() : '安徽省淮南市名杨天禧礼宴中心';
+        // 移除图标和多余符号，只保留地址文本
+        weddingAddress = weddingAddress.replace(/^[^\u4e00-\u9fa5]+/, '').replace(/[\s]+/g, ' ').trim();
+        
+        console.log('获取到的婚礼地址:', weddingAddress);
+        
+        // 先显示一个占位符，让用户知道地图正在加载
+        mapContainer.innerHTML = '<div style="display: flex; justify-content: center; align-items: center; height: 100%; background-color: #f0f0f0; color: #666;">地图加载中...</div>';
+        
+        // 高德地图初始化
+        if (window.AMap) {
+          // 清空占位符
+          mapContainer.innerHTML = '';
+          
+          try {
+            mapFlag = true;
+            
+            // 通过高德地图API获取的名杨天禧礼宴中心精确坐标
+            var exactLocation = [117.018603, 32.585384]; // 名杨天禧礼宴中心精确坐标
+            
+            // 创建地图实例
+            var map = new AMap.Map('map', {
+              center: exactLocation, // 直接使用精确坐标
+              zoom: 16, // 放大到更清晰的级别
+              minZoom: 10,
+              maxZoom: 18
+            });
+            
+            // 直接添加标记，使用精确坐标
+            var marker = new AMap.Marker({
+              position: exactLocation,
+              title: weddingAddress,
+              // 使用简单的图标配置
+              icon: 'https://webapi.amap.com/theme/v1.3/markers/n/end.png'
+            });
+            
+            // 将标记添加到地图
+            map.add(marker);
+            
+            // 添加信息窗口
+            var infoWindow = new AMap.InfoWindow({
+              content: '<div style="padding: 10px;"><h4>婚礼地点</h4><p>' + weddingAddress + '</p></div>',
+              offset: new AMap.Pixel(0, -30)
+            });
+            
+            // 打开信息窗口
+            infoWindow.open(map, exactLocation);
+            
+            // 添加一个简单的点击事件
+            marker.on('click', function() {
+              infoWindow.open(map, exactLocation);
+            });
+            
+            console.log('地图初始化完成，标记位置:', exactLocation);
+          } catch (error) {
+            console.error('地图初始化失败:', error);
+            mapContainer.innerHTML = '<div style="display: flex; justify-content: center; align-items: center; height: 100%; background-color: #f0f0f0; color: #666;">地图加载失败，请刷新重试</div>';
           }
-          ComplexCustomOverlay.prototype = new BMap.Overlay();
-          ComplexCustomOverlay.prototype.initialize = function (map) {
-            this._map = map;
-            var div = this._div = document.createElement("div");
-            div.style.position = "absolute";
-            div.style.zIndex = BMap.Overlay.getZIndex(this._point.lat);
-            div.style.backgroundColor = "#E60000";
-            div.style.borderRadius = "3px";
-            div.style.color = "white";
-            div.style.height = "18px";
-            div.style.padding = "2px 4px";
-            div.style.lineHeight = "18px";
-            div.style.whiteSpace = "nowrap";
-            div.style.MozUserSelect = "none";
-            div.style.fontSize = "12px"
-            var span = this._span = document.createElement("span");
-            div.appendChild(span);
-            span.appendChild(document.createTextNode(this._text));
-            var that = this;
-
-            var arrow = this._arrow = document.createElement("div");
-            // arrow.style.background = "url(http://map.baidu.com/fwmap/upload/r/map/fwmap/static/house/images/label.png) no-repeat";
-            arrow.style.position = "absolute";
-            arrow.style.width = "0";
-            arrow.style.height = "0";
-            arrow.style.top = "22px";
-            arrow.style.left = "10px";
-            arrow.style.overflow = "hidden";
-            arrow.style.border = "6px solid transparent";
-            arrow.style.borderTop = "6px solid #E60000";
-            div.appendChild(arrow);
-
-            map.getPanes().labelPane.appendChild(div);
-
-            return div;
-          }
-          ComplexCustomOverlay.prototype.draw = function () {
-            var map = this._map;
-            var pixel = map.pointToOverlayPixel(this._point);
-            this._div.style.left = pixel.x - parseInt(this._arrow.style.left) + "px";
-            this._div.style.top = pixel.y - 30 + "px";
-          }
-
-          var myCompOverlay = new ComplexCustomOverlay(new BMap.Point(mapCenter[0], mapCenter[1]), "婚礼", "N and Y");
-
-          map.addOverlay(myCompOverlay);
-
-          document.querySelector('#location-btn').addEventListener('click', () => {
-            map.panTo(new BMap.Point(mapCenter[0], mapCenter[1]))
-          })
+        } else {
+          console.error('AMap对象不存在，地图API加载失败');
+          mapContainer.innerHTML = '<div style="display: flex; justify-content: center; align-items: center; height: 100%; background-color: #f0f0f0; color: #666;">地图API加载失败</div>';
         }
       }
 
